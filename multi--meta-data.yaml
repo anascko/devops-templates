@@ -1,4 +1,25 @@
+{% import 'virtual-mcp11-ovs/underlay--meta-data.yaml' as CLOUDINIT_META_DATA with context %}
+{% import 'virtual-mcp11-ovs/underlay--user-data-cfg01.yaml' as CLOUDINIT_USER_DATA_CFG01 with context %}
+{% import 'virtual-mcp11-ovs/underlay--user-data1604.yaml' as CLOUDINIT_USER_DATA_1604 with context %}
+
+---
 aliases:
+ - &interface_model {{ os_env('INTERFACE_MODEL', 'virtio') }}
+ - &cloudinit_meta_data {{ CLOUDINIT_META_DATA }}
+ - &cloudinit_user_data_cfg01 {{ CLOUDINIT_USER_DATA_CFG01 }}
+ - &cloudinit_user_data_1604 {{ CLOUDINIT_USER_DATA_1604 }}
+
+{% set DOMAIN_NAME = os_env('DOMAIN_NAME', LAB_CONFIG_NAME) + '.local' %}
+{% set HOSTNAME_CFG01 = os_env('HOSTNAME_CFG01', 'cfg01.' + DOMAIN_NAME) %}
+{% set HOSTNAME_CTL01 = os_env('HOSTNAME_CTL01', 'ctl01.' + DOMAIN_NAME) %}
+{% set HOSTNAME_CTL02 = os_env('HOSTNAME_CTL02', 'ctl02.' + DOMAIN_NAME) %}
+{% set HOSTNAME_CTL03 = os_env('HOSTNAME_CTL03', 'ctl03.' + DOMAIN_NAME) %}
+{% set HOSTNAME_CMP01 = os_env('HOSTNAME_CMP01', 'cmp01.' + DOMAIN_NAME) %}
+{% set HOSTNAME_CMP02 = os_env('HOSTNAME_CMP02', 'cmp02.' + DOMAIN_NAME) %}
+{% set HOSTNAME_GTW01 = os_env('HOSTNAME_GTW01', 'gtw01.' + DOMAIN_NAME) %}
+{% set HOSTNAME_PRX01 = os_env('HOSTNAME_PRX01', 'prx01.' + DOMAIN_NAME) %}
+
+
   dynamic_addresses_pool:
     - &pool_default !os_env POOL_DEFAULT, 10.50.0.0/16:24
 
@@ -97,22 +118,24 @@ template:
 
           storage:
             address_pool: storage-pool01
-            dhcp: false
+            dhcp: true
 
-          management:
-            address_pool: management-pool01
-            dhcp: false
+          admin:
+            address_pool: admin-pool01
+            dhcp: true
+            forward:
+              mode: nat
 
-          private:
-            address_pool: private-pool01
-            dhcp: false
+          tenant:
+            address_pool: tenant-pool01
+            dhcp: dhcp
 
         nodes:
-          - name: node-1
-            role: k8s
+          - name: {{ HOSTNAME_CFG01 }}
+            role: salt_master
             params: &rack-01-node-params
               vcpu: !os_env SLAVE_NODE_CPU, 2
-              memory: !os_env SLAVE_NODE_MEMORY, 512
+              memory: !os_env SLAVE_NODE_MEMORY, 2048
               boot:
                 - hd
               cloud_init_volume_name: iso
@@ -155,6 +178,9 @@ template:
                     bootcmd:
                      # Block access to SSH while node is preparing
                      - cloud-init-per once sudo iptables -A INPUT -p tcp --dport 22 -j DROP
+                     # Enable root access
+                     - sed -i -e '/^PermitRootLogin/s/^.*$/PermitRootLogin yes/' /etc/ssh/sshd_config
+                     - service sshd restart 
                     runcmd:
                      # Prepare network connection
                      - sudo ifup {interface_name}
