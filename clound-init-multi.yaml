@@ -83,7 +83,7 @@ template:
         nodes:
           - name: cfg01-kvm
             role: salt_muster
-            params: &rack-01-node-params
+            params: 
               vcpu: !os_env SLAVE_NODE_CPU, 2
               memory: !os_env SLAVE_NODE_MEMORY, 512
               boot:
@@ -178,7 +178,7 @@ template:
         nodes:
           - name: ctl01-kvm
             role: salt_minion
-            params: &rack-01-node-params
+            params: 
               vcpu: !os_env SLAVE_NODE_CPU, 2
               memory: !os_env SLAVE_NODE_MEMORY, 512
               boot:
@@ -273,7 +273,7 @@ template:
         nodes:
           - name: ctl02-kvm
             role: salt_minion
-            params: &rack-01-node-params
+            params: 
               vcpu: !os_env SLAVE_NODE_CPU, 2
               memory: !os_env SLAVE_NODE_MEMORY, 512
               boot:
