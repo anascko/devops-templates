@@ -175,7 +175,6 @@ template:
                   networks:
                     - management
 
-        nodes:
           - name: ctl01-kvm
             role: salt_minion
             params: 
@@ -270,7 +269,6 @@ template:
                   networks:
                     - management
 
-        nodes:
           - name: ctl02-kvm
             role: salt_minion
             params: 
