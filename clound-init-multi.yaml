@@ -1,10 +1,9 @@
 aliases:
- - &interface_model {{ os_env('INTERFACE_MODEL', 'virtio') }}
   dynamic_addresses_pool:
     - &pool_default !os_env POOL_DEFAULT, 10.10.2.0/16:24
 
   default_interface_model:
-    - &interface_model !os_env INTERFACE_MODEL, e1000
+    - &interface_model !os_env INTERFACE_MODEL, virtio
 
 template:
   devops_settings:
